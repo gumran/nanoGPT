@@ -10,6 +10,8 @@ wandb_run_name = 'ft-' + str(time.time())
 dataset = 'alpaca'
 init_from = 'gpt2' # this is the largest GPT-2 model
 
+instruction_tuning = True  # Enable instruction tuning for Alpaca dataset
+
 # only save checkpoints if the validation loss improves
 always_save_checkpoint = False
 
