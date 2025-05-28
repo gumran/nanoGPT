@@ -124,7 +124,7 @@ def get_batch(split):
         y = torch.stack([torch.from_numpy((data[i+1:i+1+block_size]).astype(np.int64)) for i in ix])
     else:
         data_x = np.memmap(os.path.join(data_dir, f'{split}_x.bin'), dtype=np.uint16, mode='r')
-        data_y = np.memmap(os.path.join(data_dir, f'{split}_y.bin'), dtype=np.uint16, mode='r')
+        data_y = np.memmap(os.path.join(data_dir, f'{split}_y.bin'), dtype=np.int64, mode='r')
         ix = torch.randint(len(data_x) - block_size, (batch_size,))
         x = torch.stack([torch.from_numpy((data_x[i:i+block_size]).astype(np.int64)) for i in ix])
         y = torch.stack([torch.from_numpy((data_y[i:i+block_size]).astype(np.int64)) for i in ix])
