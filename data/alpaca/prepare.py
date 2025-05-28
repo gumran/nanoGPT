@@ -3,11 +3,12 @@ from tqdm import tqdm
 import numpy as np
 import tiktoken
 from datasets import load_dataset
+import sys
 
 # --- Configuration ---
+ignore_index = -100  # Standard ignore index for CrossEntropyLoss
 num_proc = 6
-num_proc_load_dataset = num_proc
-IGNORE_INDEX = -100  # Standard ignore index for CrossEntropyLoss
+num_proc_load_dataset = num_proc  # Standard ignore index for CrossEntropyLoss
 enc = tiktoken.get_encoding("gpt2")
 # ---
 
@@ -35,7 +36,7 @@ def process_example_for_sft(example):
     num_prompt_tokens_to_mask_in_y = len(prompt_ids)
 
     for i in range(min(num_prompt_tokens_to_mask_in_y, len(y_ids_masked))):
-        y_ids_masked[i] = IGNORE_INDEX
+        y_ids_masked[i] = ignore_index
         
     return {'x_ids': x_ids, 'y_ids_masked': y_ids_masked, 'len_x': len(x_ids), 'len_y': len(y_ids_masked)}
 
@@ -57,7 +58,7 @@ if __name__ == '__main__':
         # Calculate total lengths for x and y streams
         arr_len_x = np.sum(dset['len_x'], dtype=np.uint64)
         arr_len_y = np.sum(dset['len_y'], dtype=np.uint64)
-        # assert arr_len_x == arr_len_y, f"Mismatch in total X and Y lengths for split {split}"
+        assert arr_len_x == arr_len_y, f"Mismatch in total X and Y lengths for split {split}"
 
         filename_x = os.path.join(os.path.dirname(__file__), f'{split}_x.bin')
         filename_y = os.path.join(os.path.dirname(__file__), f'{split}_y.bin')
