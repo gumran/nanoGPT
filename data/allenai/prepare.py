@@ -7,7 +7,7 @@ import sys
 
 # --- Configuration ---
 ignore_index = -100  # Standard ignore index for CrossEntropyLoss
-num_proc = 6
+num_proc = 16
 num_proc_load_dataset = num_proc
 enc = tiktoken.get_encoding("gpt2")
 
@@ -21,10 +21,9 @@ def process_example_for_sft_multi_turn(example):
     processed_turns = {'x_ids': [], 'y_ids_masked': [], 'len_x': [], 'len_y': []}
     system_prompt_tokens = enc.encode_ordinary(SYSTEM_PROMPT_TEXT)
     current_context_tokens = list(system_prompt_tokens) # Initialize with system prompt
-
+    
     for i in range(len(example['messages'])):
         message = example['messages'][i]
-
         if message['role'] == 'user':
             user_tokens = enc.encode_ordinary(USER_PREFIX + message['content'] + END_OF_TURN_SUFFIX)
             current_context_tokens.extend(user_tokens)
@@ -56,7 +55,7 @@ def process_example_for_sft_multi_turn(example):
 if __name__ == '__main__':
     dataset_hf = load_dataset("allenai/tulu-3-sft-olmo-2-mixture-0225", num_proc=num_proc_load_dataset)
 
-    split_dataset = dataset_hf["train"].train_test_split(test_size=0.05, seed=2357, shuffle=True)
+    split_dataset = dataset_hf["train"].select(range(100000)).train_test_split(test_size=0.05, seed=2357, shuffle=True)
     split_dataset['val'] = split_dataset.pop('test')
 
     tokenized_sft = split_dataset.map(
@@ -72,7 +71,7 @@ if __name__ == '__main__':
         print(f"Flattening {split_name}...")
         
         all_data = {'x_ids': [], 'y_ids_masked': [], 'len_x': [], 'len_y': []}
-        for batch in tqdm(tokenized_sft[split_name].select(range(1000)), desc=f"Processing {split_name}"):
+        for batch in tqdm(tokenized_sft[split_name], desc=f"Processing {split_name}"):
             # Each batch contains lists of training examples
             all_data['x_ids'].extend(batch['x_ids'])
             all_data['y_ids_masked'].extend(batch['y_ids_masked'])
